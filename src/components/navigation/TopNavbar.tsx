@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import { 
   Search, 
   Bell, 
@@ -27,6 +28,7 @@ const TopNavbar: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
   const { logout, user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,7 +89,7 @@ const TopNavbar: React.FC = () => {
           <DropdownMenuContent align="end" className="w-48">
             <DropdownMenuLabel>الإعدادات</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>الملف الشخصي</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/settings")}>إعدادات النظام</DropdownMenuItem>
             {user?.isAdmin && (
               <>
                 <DropdownMenuItem>إدارة المستخدمين</DropdownMenuItem>
@@ -96,6 +98,7 @@ const TopNavbar: React.FC = () => {
                 <DropdownMenuItem>التقارير المالية</DropdownMenuItem>
               </>
             )}
+            <DropdownMenuSeparator />
             <DropdownMenuItem>حول البرنامج</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

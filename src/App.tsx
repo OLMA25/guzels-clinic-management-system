@@ -15,6 +15,7 @@ import Appointments from "./pages/Appointments";
 import Clients from "./pages/Clients";
 import Services from "./pages/Services";
 import Invoices from "./pages/Invoices";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import { initializeDatabase } from "@/lib/db";
 import { toast } from "sonner";
@@ -56,6 +57,7 @@ const App = () => {
                 <Route path="/clients" element={<DashboardLayout><Clients /></DashboardLayout>} />
                 <Route path="/services" element={<DashboardLayout><Services /></DashboardLayout>} />
                 <Route path="/invoices" element={<DashboardLayout><Invoices /></DashboardLayout>} />
+                <Route path="/settings" element={<DashboardLayout><Settings /></DashboardLayout>} />
                 
                 {/* Catch-all for 404 */}
                 <Route path="*" element={<NotFound />} />
