@@ -11,6 +11,22 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Edit,
   Plus,
   Search,
@@ -18,9 +34,19 @@ import {
   Scissors,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import ServiceForm from "@/components/services/ServiceForm";
+import { toast } from "sonner";
+
+// Define types for our services
+interface Service {
+  id: number;
+  name: string;
+  price: number;
+  dynamicPrice?: boolean;
+}
 
 // Sample services data
-const initialServices = [
+const initialServices: Service[] = [
   { id: 1, name: "وجه كامل", price: 50000 },
   { id: 2, name: "شارب", price: 0, dynamicPrice: true },
   { id: 3, name: "ذقن", price: 0, dynamicPrice: true },
@@ -47,14 +73,69 @@ const initialServices = [
 
 const Services = () => {
   const { user } = useAuth();
-  const [services, setServices] = useState(initialServices);
+  const [services, setServices] = useState<Service[]>(initialServices);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [currentService, setCurrentService] = useState<Service | null>(null);
 
+  // Filter services based on search query
   const filteredServices = services.filter(
     (service) =>
       service.name.includes(searchQuery) ||
       service.price.toString().includes(searchQuery)
   );
+
+  // Handle opening the dialog for adding a new service
+  const handleAddService = () => {
+    setCurrentService(null);
+    setIsDialogOpen(true);
+  };
+
+  // Handle opening the dialog for editing an existing service
+  const handleEditService = (service: Service) => {
+    setCurrentService(service);
+    setIsDialogOpen(true);
+  };
+
+  // Handle opening the dialog for deleting a service
+  const handleDeleteClick = (service: Service) => {
+    setCurrentService(service);
+    setIsDeleteDialogOpen(true);
+  };
+
+  // Handle form submission for adding or editing a service
+  const handleFormSubmit = (formData: any) => {
+    if (currentService) {
+      // Editing existing service
+      setServices(
+        services.map((service) =>
+          service.id === currentService.id
+            ? { ...service, ...formData }
+            : service
+        )
+      );
+      toast.success("تم تعديل الخدمة بنجاح");
+    } else {
+      // Adding new service
+      const newService = {
+        id: services.length > 0 ? Math.max(...services.map(s => s.id)) + 1 : 1,
+        ...formData,
+      };
+      setServices([...services, newService]);
+      toast.success("تمت إضافة الخدمة بنجاح");
+    }
+    setIsDialogOpen(false);
+  };
+
+  // Handle deleting a service
+  const handleDeleteService = () => {
+    if (currentService) {
+      setServices(services.filter((service) => service.id !== currentService.id));
+      toast.success("تم حذف الخدمة بنجاح");
+      setIsDeleteDialogOpen(false);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-4 animate-fade-in">
@@ -71,7 +152,7 @@ const Services = () => {
             <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           </div>
           {user?.isAdmin && (
-            <Button className="gap-1 whitespace-nowrap">
+            <Button className="gap-1 whitespace-nowrap" onClick={handleAddService}>
               <Plus size={16} /> خدمة جديدة
             </Button>
           )}
@@ -108,6 +189,7 @@ const Services = () => {
                           variant="ghost"
                           size="icon"
                           title="تعديل"
+                          onClick={() => handleEditService(service)}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -115,6 +197,7 @@ const Services = () => {
                           variant="ghost"
                           size="icon"
                           title="حذف"
+                          onClick={() => handleDeleteClick(service)}
                         >
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
@@ -142,6 +225,46 @@ const Services = () => {
           </TableBody>
         </Table>
       </div>
+
+      {/* Dialog for adding/editing services */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {currentService ? "تعديل خدمة" : "إضافة خدمة جديدة"}
+            </DialogTitle>
+          </DialogHeader>
+          <ServiceForm
+            initialData={currentService || undefined}
+            onSubmit={handleFormSubmit}
+            onCancel={() => setIsDialogOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Alert dialog for delete confirmation */}
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>هل أنت متأكد من حذف هذه الخدمة؟</AlertDialogTitle>
+            <AlertDialogDescription>
+              لا يمكن التراجع عن هذا الإجراء. سيتم حذف الخدمة "{currentService?.name}" نهائياً.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteService}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              حذف
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

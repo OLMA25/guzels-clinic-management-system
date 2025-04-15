@@ -6,11 +6,12 @@ import { useAuth } from "@/contexts/AuthContext";
 const Index = () => {
   const { isAuthenticated } = useAuth();
 
-  if (!isAuthenticated) {
+  // If authenticated, redirect to dashboard, otherwise redirect to login
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" />;
+  } else {
     return <Navigate to="/login" />;
   }
-  
-  return <Navigate to="/dashboard" />;
 };
 
 export default Index;
